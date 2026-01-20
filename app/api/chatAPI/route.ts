@@ -1,8 +1,6 @@
 import { ChatBody } from '@/types/types';
 import { OpenAIStream } from '@/utils/chatStream';
 
-export const runtime = 'edge';
-
 export async function GET(req: Request): Promise<Response> {
   try {
     const { inputCode, model, messages } = (await req.json()) as ChatBody;
