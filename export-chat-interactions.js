@@ -4,39 +4,116 @@ const fs = require('fs');
 
 // Firebase configuration (aligned with export-voice-interactions.js)
 const firebaseConfig = {
-  apiKey: "AIzaSyBkkGt1qlQK62dGzxi4AK1aZC5H2A7DPxY",
-  authDomain: "chatroom-66981.firebaseapp.com",
-  projectId: "chatroom-66981",
-  storageBucket: "chatroom-66981.firebasestorage.app",
-  messagingSenderId: "919496165622",
-  appId: "1:919496165622:web:2557bcce7f1bbfab6ec4d7"
+  apiKey: "AIzaSyCHCc1l3IPVNy2amUg6DrxVf1Kf-4pY1lU",
+  authDomain: "chatbot-control-study.firebaseapp.com",
+  projectId: "chatbot-control-study",
+  storageBucket: "chatbot-control-study.firebasestorage.app",
+  messagingSenderId: "172602855362",
+  appId: "1:172602855362:web:ac3fabdc1be6c80bcc105b"
 };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-function getYesterdayRangeUTC() {
-  const now = new Date();
-  const utcYear = now.getUTCFullYear();
-  const utcMonth = now.getUTCMonth();
-  const utcDate = now.getUTCDate();
+const DEFAULT_TIME_ZONE = 'America/New_York';
 
-  // Start of today UTC
-  const startOfTodayUTC = new Date(Date.UTC(utcYear, utcMonth, utcDate, 0, 0, 0, 0));
-  // Start of yesterday UTC
-  const startOfYesterdayUTC = new Date(startOfTodayUTC.getTime() - 24 * 60 * 60 * 1000);
-  // End of yesterday UTC
-  const endOfYesterdayUTC = new Date(startOfTodayUTC.getTime() - 1);
+function getTimeZoneOffset(date, timeZone) {
+  const dtf = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    hour12: false,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
+  const parts = dtf.formatToParts(date).reduce((acc, part) => {
+    acc[part.type] = part.value;
+    return acc;
+  }, {});
 
-  return { start: startOfYesterdayUTC, end: endOfYesterdayUTC };
+  const asUTC = Date.UTC(
+    Number(parts.year),
+    Number(parts.month) - 1,
+    Number(parts.day),
+    Number(parts.hour),
+    Number(parts.minute),
+    Number(parts.second),
+  );
+
+  return asUTC - date.getTime();
 }
 
-async function exportYesterdayChatInteractions() {
-  try {
-    console.log('Starting chat export for yesterday (UTC)...');
+function getDatePartsInZone(date, timeZone) {
+  const dtf = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+  const parts = dtf.formatToParts(date).reduce((acc, part) => {
+    acc[part.type] = part.value;
+    return acc;
+  }, {});
 
-    const { start, end } = getYesterdayRangeUTC();
+  return {
+    year: Number(parts.year),
+    month: Number(parts.month),
+    day: Number(parts.day),
+  };
+}
+
+function addDays(parts, days) {
+  const date = new Date(Date.UTC(parts.year, parts.month - 1, parts.day + days));
+  return {
+    year: date.getUTCFullYear(),
+    month: date.getUTCMonth() + 1,
+    day: date.getUTCDate(),
+  };
+}
+
+function startOfDayInZone(parts, timeZone) {
+  const localMidnightAsUTC = new Date(
+    Date.UTC(parts.year, parts.month - 1, parts.day, 0, 0, 0, 0),
+  );
+  const offsetMs = getTimeZoneOffset(localMidnightAsUTC, timeZone);
+  return new Date(localMidnightAsUTC.getTime() - offsetMs);
+}
+
+function getDateRangeInZone(dateArg, timeZone) {
+  const arg = (dateArg || '').toLowerCase();
+  let targetParts;
+
+  if (!arg || arg === 'yesterday' || arg === 'today') {
+    const todayParts = getDatePartsInZone(new Date(), timeZone);
+    targetParts = arg === 'today' ? todayParts : addDays(todayParts, -1);
+  } else if (arg === 'today') {
+    targetParts = getDatePartsInZone(new Date(), timeZone);
+  } else if (/^\d{4}-\d{2}-\d{2}$/.test(arg)) {
+    const [year, month, day] = arg.split('-').map(Number);
+    targetParts = { year, month, day };
+  } else {
+    throw new Error('Invalid date. Use "today", "yesterday", or YYYY-MM-DD.');
+  }
+
+  const start = startOfDayInZone(targetParts, timeZone);
+  const nextDayParts = addDays(targetParts, 1);
+  const nextStart = startOfDayInZone(nextDayParts, timeZone);
+  const end = new Date(nextStart.getTime() - 1);
+
+  return { start, end, datePart: `${targetParts.year}-${String(targetParts.month).padStart(2, '0')}-${String(targetParts.day).padStart(2, '0')}` };
+}
+
+async function exportChatInteractionsForDate() {
+  try {
+    const dateArg = process.argv[2];
+    const rangeLabel = dateArg || 'yesterday';
+    const timeZone = process.env.EXPORT_TZ || DEFAULT_TIME_ZONE;
+    console.log(`Starting chat export for ${rangeLabel} (${timeZone})...`);
+
+    const { start, end, datePart } = getDateRangeInZone(dateArg, timeZone);
     const startTs = Timestamp.fromDate(start);
     const endTs = Timestamp.fromDate(end);
 
@@ -49,7 +126,7 @@ async function exportYesterdayChatInteractions() {
     );
 
     const querySnapshot = await getDocs(q);
-    console.log(`Found ${querySnapshot.size} chat interactions for ${start.toISOString().slice(0, 10)} (UTC)`);
+    console.log(`Found ${querySnapshot.size} chat interactions for ${datePart} (${timeZone})`);
 
     // Prepare CSV
     const csvHeader = 'Timestamp,User Message,Assistant Message,Turn Number,Session ID,Prolific PID\n';
@@ -85,7 +162,6 @@ async function exportYesterdayChatInteractions() {
     const csvContent = csvHeader + csvRows.join('\n');
 
     // Save file using yesterday's date in filename (UTC)
-    const datePart = getYesterdayRangeUTC().start.toISOString().slice(0, 10);
     const filename = `chat_interactions_${datePart}.csv`;
     fs.writeFileSync(filename, csvContent);
 
@@ -96,6 +172,4 @@ async function exportYesterdayChatInteractions() {
   }
 }
 
-exportYesterdayChatInteractions();
-
-
+exportChatInteractionsForDate();
