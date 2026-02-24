@@ -3,7 +3,7 @@
 
 import Link from '@/components/link/Link';
 import MessageBoxChat from '@/components/MessageBox';
-import { ChatBody, OpenAIModel } from '@/types/types';
+import { ChatBody } from '@/types/types';
 import {
   Accordion,
   AccordionButton,
@@ -48,8 +48,6 @@ export default function Chat() {
   const [messages, setMessages] = useState<Message[]>([]);
   // Response message
   const [outputCode, setOutputCode] = useState<string>('');
-  // ChatGPT model
-  const [model, setModel] = useState<OpenAIModel>('gpt-4o');
   // Loading state
   const [loading, setLoading] = useState<boolean>(false);
   // Reference to the messages container
@@ -106,8 +104,6 @@ export default function Chat() {
     }
   }, [loading, messages]);
 
-  // Notification system removed - AI now handles prompt transitions automatically
-
   // API Key
   // const [apiKey, setApiKey] = useState<string>(apiKeyApp);
   const borderColor = useColorModeValue('gray.200', 'whiteAlpha.200');
@@ -136,7 +132,7 @@ export default function Chat() {
     }
 
     // Chat post conditions(maximum number of characters, valid message etc.)
-    const maxCodeLength = model === 'gpt-4o' ? 700 : 700;
+    const maxCodeLength = 700;
 
     if (!inputCode) {
       alert('Please enter your message.');
@@ -165,7 +161,6 @@ export default function Chat() {
     const controller = new AbortController();
     const body: ChatBody = {
       inputCode: currentMessage, // Use stored message
-      model,
       messages: messages.map(({ role, content }) => ({ role, content })),
     };
 

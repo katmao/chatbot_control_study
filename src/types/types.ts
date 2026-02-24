@@ -1,7 +1,7 @@
-export type OpenAIModel = 'gpt-4o' | 'gpt-3.5-turbo';
+export type OpenAIModel = 'gpt-4o';
 
 export interface ChatBody {
   inputCode: string;
-  model: OpenAIModel;
+  model?: OpenAIModel;
   messages?: { role: 'user' | 'assistant'; content: string }[];
 }
