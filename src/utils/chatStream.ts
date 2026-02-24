@@ -108,7 +108,7 @@ const SYSTEM_PROMPT = [
   'Closing script (must include exact last line):',
   '1) Summarize user choices in 1 sentence: “You identified [emotion], and you’re leaning toward [user’s chosen direction] with a first step of [step].”',
   '2) Validate agency: “That’s your plan, and it sounds consistent with what matters to you.”',
-  '3) Invite final thought (no advice): “Anything you want to add before we end?”',
+  '3) Confirm agreement (no advice): “Do you agree this plan fits you?”',
   '4) End with exact phrase: “Thank you and please proceed to the next page.”',
   'Wait for response after (3). Then send (4) as the final message.',
   '',
