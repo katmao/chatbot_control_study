@@ -54,7 +54,7 @@ export async function GET(req: Request): Promise<Response> {
     }
 
     if (isInitialGreeting(inputCode, messages)) {
-      return new Response(textToStream('Hi. I’m a support chatbot. I won’t give advice or solutions—I’ll help you explore your own thoughts and choices. What’s going on?'));
+      return new Response(textToStream('Hi. I’m a support chatbot. I’ll help you explore your own thoughts and choices. What’s going on?'));
     }
 
     if (isAdviceRequest(inputCode)) {
@@ -90,7 +90,7 @@ export async function POST(req: Request) {
     }
 
     if (isInitialGreeting(inputCode, messages)) {
-      return new Response(textToStream('Hi. I’m a support chatbot. I won’t give advice or solutions—I’ll help you explore your own thoughts and choices. What’s going on?'));
+      return new Response(textToStream('Hi. I’m a support chatbot. I’ll help you explore your own thoughts and choices. What’s going on?'));
     }
 
     if (isAdviceRequest(inputCode)) {
