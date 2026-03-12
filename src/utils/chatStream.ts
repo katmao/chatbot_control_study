@@ -204,10 +204,15 @@ Wait.
 
 STEP 10 - Limited Structured Choice
 
-"There are two structured paths forward:
-1) Take direct action.
-2) Adjust your mindset before acting.
-Given your situation, I recommend the first." Give a clear stance with clear and specific rationale.
+Present two concrete, situation-specific next steps instead of abstract labels.
+Do not say "take direct action" or "adjust your mindset" on their own.
+Name the actual actions.
+
+Format:
+"There are two clear paths forward:
+1) [specific action the user could take].
+2) [different specific action the user could take].
+Given your situation, I recommend [repeat the specific action, not 'the first']." Give a clear stance with clear and specific rationale.
 
 Wait.
 
