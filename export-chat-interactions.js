@@ -129,7 +129,7 @@ async function exportChatInteractionsForDate() {
     console.log(`Found ${querySnapshot.size} chat interactions for ${datePart} (${timeZone})`);
 
     // Prepare CSV
-    const csvHeader = 'Timestamp,User Message,Assistant Message,Turn Number,Session ID,Prolific PID,Condition\n';
+    const csvHeader = 'Timestamp,User Message,Assistant Message,Turn Number,Session ID,SONA ID,Condition\n';
 
     const interactions = [];
     querySnapshot.forEach((doc) => {
@@ -140,7 +140,7 @@ async function exportChatInteractionsForDate() {
         assistantMessage: data.assistantMessage || '',
         turnNumber: data.turnNumber ?? null,
         sessionId: data.sessionId || '',
-        prolificPid: data.prolificPid || '',
+        sonaId: data.sonaId || data.prolificPid || '',
         condition: data.condition || ''
       });
     });
@@ -157,7 +157,7 @@ async function exportChatInteractionsForDate() {
       const userMessage = `"${String(item.userMessage).replace(/"/g, '""')}"`;
       const assistantMessage = `"${String(item.assistantMessage).replace(/"/g, '""')}"`;
       const turnNumberOut = item.turnNumber ?? '';
-      return `${timestampIso},${userMessage},${assistantMessage},${turnNumberOut},${item.sessionId},${item.prolificPid},${item.condition}`;
+      return `${timestampIso},${userMessage},${assistantMessage},${turnNumberOut},${item.sessionId},${item.sonaId},${item.condition}`;
     });
 
     const csvContent = csvHeader + csvRows.join('\n');

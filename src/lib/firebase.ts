@@ -34,7 +34,7 @@ export interface ChatInteraction {
   assistantMessage: string;
   turnNumber: number;
   sessionId: string;
-  prolificPid: string; // Add Prolific participant ID
+  sonaId: string;
   condition: string;
 }
 
@@ -75,8 +75,8 @@ export const getChatInteractions = async () => {
   }
 };
 
-// Get chat interactions by Prolific PID
-export const getChatInteractionsByPid = async (prolificPid: string) => {
+// Get chat interactions by SONA ID
+export const getChatInteractionsBySonaId = async (sonaId: string) => {
   try {
     const q = query(
       collection(db, 'chat_interactions'), 
@@ -86,13 +86,13 @@ export const getChatInteractionsByPid = async (prolificPid: string) => {
     const interactions: ChatInteraction[] = [];
     querySnapshot.forEach((doc) => {
       const data = doc.data() as ChatInteraction;
-      if (data.prolificPid === prolificPid) {
+      if ((data.sonaId || (data as any).prolificPid) === sonaId) {
         interactions.push(data);
       }
     });
     return interactions;
   } catch (error) {
-    console.error('Error getting chat interactions by PID: ', error);
+    console.error('Error getting chat interactions by SONA ID: ', error);
     throw error;
   }
 };
@@ -103,14 +103,15 @@ export const exportChatInteractionsAsCSV = async () => {
     const interactions = await getChatInteractions();
     
     // Create CSV header
-    const csvHeader = 'Timestamp,User Message,Assistant Message,Turn Number,Session ID,Prolific PID,Condition\n';
+    const csvHeader = 'Timestamp,User Message,Assistant Message,Turn Number,Session ID,SONA ID,Condition\n';
     
     // Create CSV rows
     const csvRows = interactions.map(interaction => {
       const timestamp = interaction.timestamp.toDate().toISOString();
       const userMessage = `"${interaction.userMessage.replace(/"/g, '""')}"`;
       const assistantMessage = `"${interaction.assistantMessage.replace(/"/g, '""')}"`;
-      return `${timestamp},${userMessage},${assistantMessage},${interaction.turnNumber},${interaction.sessionId},${interaction.prolificPid},${interaction.condition ?? ''}`;
+      const sonaId = interaction.sonaId || (interaction as any).prolificPid || '';
+      return `${timestamp},${userMessage},${assistantMessage},${interaction.turnNumber},${interaction.sessionId},${sonaId},${interaction.condition ?? ''}`;
     }).join('\n');
     
     const csvContent = csvHeader + csvRows;
@@ -133,20 +134,21 @@ export const exportChatInteractionsAsCSV = async () => {
   }
 };
 
-// Export chat interactions for specific Prolific PID as CSV
-export const exportChatInteractionsByPidAsCSV = async (prolificPid: string) => {
+// Export chat interactions for specific SONA ID as CSV
+export const exportChatInteractionsBySonaIdAsCSV = async (sonaId: string) => {
   try {
-    const interactions = await getChatInteractionsByPid(prolificPid);
+    const interactions = await getChatInteractionsBySonaId(sonaId);
     
     // Create CSV header
-    const csvHeader = 'Timestamp,User Message,Assistant Message,Turn Number,Session ID,Prolific PID,Condition\n';
+    const csvHeader = 'Timestamp,User Message,Assistant Message,Turn Number,Session ID,SONA ID,Condition\n';
     
     // Create CSV rows
     const csvRows = interactions.map(interaction => {
       const timestamp = interaction.timestamp.toDate().toISOString();
       const userMessage = `"${interaction.userMessage.replace(/"/g, '""')}"`;
       const assistantMessage = `"${interaction.assistantMessage.replace(/"/g, '""')}"`;
-      return `${timestamp},${userMessage},${assistantMessage},${interaction.turnNumber},${interaction.sessionId},${interaction.prolificPid},${interaction.condition ?? ''}`;
+      const resolvedSonaId = interaction.sonaId || (interaction as any).prolificPid || '';
+      return `${timestamp},${userMessage},${assistantMessage},${interaction.turnNumber},${interaction.sessionId},${resolvedSonaId},${interaction.condition ?? ''}`;
     }).join('\n');
     
     const csvContent = csvHeader + csvRows;
@@ -156,7 +158,7 @@ export const exportChatInteractionsByPidAsCSV = async (prolificPid: string) => {
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
-    link.setAttribute('download', `chat_interactions_${prolificPid}_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `chat_interactions_${sonaId}_${new Date().toISOString().split('T')[0]}.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
@@ -164,7 +166,7 @@ export const exportChatInteractionsByPidAsCSV = async (prolificPid: string) => {
     
     return csvContent;
   } catch (error) {
-    console.error('Error exporting chat interactions by PID: ', error);
+    console.error('Error exporting chat interactions by SONA ID: ', error);
     throw error;
   }
 };

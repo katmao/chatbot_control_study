@@ -71,7 +71,7 @@ async function exportChatInteractionsForDate() {
       return;
     }
 
-    const csvHeader = 'Timestamp,User Message,Assistant Message,Turn Number,Session ID,Prolific PID,Condition\n';
+    const csvHeader = 'Timestamp,User Message,Assistant Message,Turn Number,Session ID,SONA ID,Condition\n';
     const rows = [];
 
     snapshot.forEach(doc => {
@@ -80,7 +80,7 @@ async function exportChatInteractionsForDate() {
       const userMessage = data.userMessage ? data.userMessage.replace(/"/g, '""') : '';
       const assistantMessage = data.assistantMessage ? data.assistantMessage.replace(/"/g, '""') : '';
       rows.push(
-        `${timestampIso},"${userMessage}","${assistantMessage}",${data.turnNumber ?? ''},${data.sessionId ?? ''},${data.prolificPid ?? ''},${data.condition ?? ''}`,
+        `${timestampIso},"${userMessage}","${assistantMessage}",${data.turnNumber ?? ''},${data.sessionId ?? ''},${data.sonaId ?? data.prolificPid ?? ''},${data.condition ?? ''}`,
       );
     });
 
