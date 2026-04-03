@@ -35,6 +35,7 @@ export interface ChatInteraction {
   turnNumber: number;
   sessionId: string;
   prolificPid: string; // Add Prolific participant ID
+  condition: string;
 }
 
 // Log a chat interaction
@@ -102,14 +103,14 @@ export const exportChatInteractionsAsCSV = async () => {
     const interactions = await getChatInteractions();
     
     // Create CSV header
-    const csvHeader = 'Timestamp,User Message,Assistant Message,Turn Number,Session ID,Prolific PID\n';
+    const csvHeader = 'Timestamp,User Message,Assistant Message,Turn Number,Session ID,Prolific PID,Condition\n';
     
     // Create CSV rows
     const csvRows = interactions.map(interaction => {
       const timestamp = interaction.timestamp.toDate().toISOString();
       const userMessage = `"${interaction.userMessage.replace(/"/g, '""')}"`;
       const assistantMessage = `"${interaction.assistantMessage.replace(/"/g, '""')}"`;
-      return `${timestamp},${userMessage},${assistantMessage},${interaction.turnNumber},${interaction.sessionId},${interaction.prolificPid}`;
+      return `${timestamp},${userMessage},${assistantMessage},${interaction.turnNumber},${interaction.sessionId},${interaction.prolificPid},${interaction.condition ?? ''}`;
     }).join('\n');
     
     const csvContent = csvHeader + csvRows;
@@ -138,14 +139,14 @@ export const exportChatInteractionsByPidAsCSV = async (prolificPid: string) => {
     const interactions = await getChatInteractionsByPid(prolificPid);
     
     // Create CSV header
-    const csvHeader = 'Timestamp,User Message,Assistant Message,Turn Number,Session ID,Prolific PID\n';
+    const csvHeader = 'Timestamp,User Message,Assistant Message,Turn Number,Session ID,Prolific PID,Condition\n';
     
     // Create CSV rows
     const csvRows = interactions.map(interaction => {
       const timestamp = interaction.timestamp.toDate().toISOString();
       const userMessage = `"${interaction.userMessage.replace(/"/g, '""')}"`;
       const assistantMessage = `"${interaction.assistantMessage.replace(/"/g, '""')}"`;
-      return `${timestamp},${userMessage},${assistantMessage},${interaction.turnNumber},${interaction.sessionId},${interaction.prolificPid}`;
+      return `${timestamp},${userMessage},${assistantMessage},${interaction.turnNumber},${interaction.sessionId},${interaction.prolificPid},${interaction.condition ?? ''}`;
     }).join('\n');
     
     const csvContent = csvHeader + csvRows;

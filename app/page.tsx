@@ -31,6 +31,8 @@ interface Message {
   isTyping?: boolean;
 }
 
+const STUDY_CONDITION = 'high_control';
+
 // Function to get PROLIFIC_PID from URL parameters
 const getProlificPid = (): string => {
   if (typeof window !== 'undefined') {
@@ -258,7 +260,8 @@ export default function Chat() {
             assistantMessage: accumulatedResponse,
             turnNumber: currentTurn,
             sessionId: sessionId,
-            prolificPid: prolificPid
+            prolificPid: prolificPid,
+            condition: STUDY_CONDITION
           });
           
           console.log(`Chat interaction logged for turn ${currentTurn}`);
