@@ -23,7 +23,7 @@ import {
 import { useEffect, useState, useRef } from 'react';
 import { MdAutoAwesome, MdBolt, MdEdit, MdPerson } from 'react-icons/md';
 import Bg from '../public/img/chat/bg-image.png';
-import { logChatInteraction, exportChatInteractionsByPidAsCSV } from '@/lib/firebase';
+import { logChatInteraction, exportChatInteractionsBySonaIdAsCSV } from '@/lib/firebase';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -33,13 +33,19 @@ interface Message {
 
 const STUDY_CONDITION = 'low_control';
 
-// Function to get PROLIFIC_PID from URL parameters
-const getProlificPid = (): string => {
+// Qualtrics passes the SONA participant identifier via the `id` URL parameter.
+const getSonaId = (): string => {
   if (typeof window !== 'undefined') {
     const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get('PROLIFIC_PID') || 'unknown_pid';
+    return (
+      urlParams.get('id') ||
+      urlParams.get('sonaId') ||
+      urlParams.get('SONA_ID') ||
+      urlParams.get('PROLIFIC_PID') ||
+      'unknown_sona_id'
+    );
   }
-  return 'unknown_pid';
+  return 'unknown_sona_id';
 };
 
 export default function Chat() {
@@ -64,8 +70,8 @@ export default function Chat() {
   const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
   // Turn counter
   const [turnNumber, setTurnNumber] = useState(0);
-  // Prolific PID
-  const [prolificPid] = useState(() => getProlificPid());
+  // SONA participant ID
+  const [sonaId] = useState(() => getSonaId());
 
   // Debug loading state
   useEffect(() => {
@@ -265,7 +271,7 @@ export default function Chat() {
             assistantMessage: accumulatedResponse,
             turnNumber: currentTurn,
             sessionId: sessionId,
-            prolificPid: prolificPid,
+            sonaId: sonaId,
             condition: STUDY_CONDITION
           });
           
@@ -314,10 +320,10 @@ export default function Chat() {
 
   const handleExportCSV = async () => {
     try {
-      await exportChatInteractionsByPidAsCSV(prolificPid);
+      await exportChatInteractionsBySonaIdAsCSV(sonaId);
       toast({
         title: 'Export Successful',
-        description: `Chat interactions for PID ${prolificPid} have been exported as CSV`,
+        description: `Chat interactions for SONA ID ${sonaId} have been exported as CSV`,
         status: 'success',
         duration: 3000,
         isClosable: true,
