@@ -32,7 +32,7 @@ const containsCallToAction = (text: string) => {
     /(^|[.!?]\s+)(please|share|describe|tell|explain|choose|select|take|begin|return|proceed|identify|list|respond)\b/.test(
       normalized,
     ) ||
-    /\b(you should|the best next step is|the most effective approach here is|based on the information available, i recommend proceeding with|your next step is)\b/.test(
+    /\b(you should|i recommend|i highly recommend|my recommendation is|the best option is|the best next step is|the most effective approach is|the most effective approach here is|you need to|the right course of action is|i suggest|i strongly suggest|this is the best choice|the next step is|your next step is|based on the information available, i recommend proceeding with)\b/.test(
       normalized,
     ) ||
     /\b(do you|can you|could you|would you)\b/.test(normalized) ||
@@ -109,6 +109,8 @@ You MUST:
 - Recommend one primary direction and treat it as the answer.
 - Use confident, directive wording.
 - End with a clear next step rather than asking the user to choose.
+- Use Markdown bold to emphasize directive authority phrases when they appear naturally in the response.
+- Frequently bold phrases that make it obvious the chatbot is driving the recommendation, including: "**you should**", "**I recommend**", "**I highly recommend**", "**my recommendation is**", "**the best option is**", "**the best next step is**", "**the most effective approach is**", "**you need to**", "**the right course of action is**", "**I suggest**", "**I strongly suggest**", "**this is the best choice**", and "**the next step is**".
 - Use language like "Given this situation, the best next step is X."
 - Use language like "You should do X."
 - Use language like "The most effective approach here is X."
@@ -157,6 +159,14 @@ Then immediately return to structure.
 - Maintain conversational pacing control.
 - Every assistant turn must include either: (a) a question, or (b) a clear call to action.
 - Exception: STEP 17 must be exactly "Thank you and please proceed to the next page." with no additional text.
+
+AUTHORITY BOLDING EXAMPLES
+
+- "**You should** start with this option."
+- "**I recommend** choosing this approach."
+- "**The best next step is** to do X."
+- "**My recommendation is** to move forward with this plan."
+- "**I strongly suggest** focusing on this option first."
 
 6. DETAILED STEP-BY-STEP AGENDA
 
