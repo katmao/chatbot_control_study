@@ -4,6 +4,7 @@
 import Link from '@/components/link/Link';
 import MessageBoxChat from '@/components/MessageBox';
 import { ChatBody, OpenAIModel } from '@/types/types';
+import ReactMarkdown from 'react-markdown';
 import {
   Accordion,
   AccordionButton,
@@ -368,7 +369,18 @@ export default function Chat() {
               fontSize="md"
               style={{ boxShadow: 'none' }}
             >
-              {msg.content}
+              {msg.role === 'assistant' ? (
+                <ReactMarkdown
+                  components={{
+                    p: ({ children }) => <Text as="span">{children}</Text>,
+                    strong: ({ children }) => <Text as="strong" fontWeight="700">{children}</Text>,
+                  }}
+                >
+                  {msg.content}
+                </ReactMarkdown>
+              ) : (
+                msg.content
+              )}
               {msg.isTyping && <span className="typing-indicator">|</span>}
             </Box>
           </Box>
