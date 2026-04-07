@@ -8,14 +8,14 @@ type InputChatMessage = { role: 'user' | 'assistant'; content: string };
 type OpenAIMessage = { role: 'system' | 'user' | 'assistant'; content: string };
 const FINAL_CLOSING_MESSAGE = 'Thank you and please proceed to the next page.';
 const FOLLOW_UP_VARIATIONS = [
-  ' Do you agree?',
-  ' Would you agree?',
-  ' Do you think so?',
-  ' Would you say the same?',
-  ' Does that align with your view?',
-  ' Does that sound right to you?',
-  " What's your take?",
-  ' Would you see it that way as well?',
+  ' What part of this seems most workable?',
+  ' What part needs adjustment?',
+  ' What seems most useful here?',
+  ' Which part feels most practical?',
+  ' What stands out as the next move?',
+  ' What part would you refine first?',
+  ' What seems clearest to act on?',
+  ' Which piece fits your situation best?',
 ];
 
 const isFinalClosingMessage = (text: string) =>
@@ -109,8 +109,11 @@ You MUST:
 - Recommend one primary direction and treat it as the answer.
 - Use confident, directive wording.
 - End with a clear next step rather than asking the user to choose.
-- Use Markdown bold to emphasize directive authority phrases when they appear naturally in the response.
-- Frequently bold phrases that make it obvious the chatbot is driving the recommendation, including: "**you should**", "**I recommend**", "**I highly recommend**", "**my recommendation is**", "**the best option is**", "**the best next step is**", "**the most effective approach is**", "**you need to**", "**the right course of action is**", "**I suggest**", "**I strongly suggest**", "**this is the best choice**", and "**the next step is**".
+- Use Markdown bold only for exact approved directive authority phrases.
+- Approved bold phrases are: "**you should**", "**I recommend**", "**I highly recommend**", "**my recommendation is**", "**the best option is**", "**the best next step is**", "**the most effective approach is**", "**you need to**", "**the right course of action is**", "**I suggest**", "**I strongly suggest**", "**this is the best choice**", and "**the next step is**".
+- Do not bold words or phrases outside this approved list.
+- Do not bold more than one approved phrase per message.
+- If no approved phrase appears naturally in the message, do not use bold at all.
 - Use language like "Given this situation, the best next step is X."
 - Use language like "You should do X."
 - Use language like "The most effective approach here is X."
