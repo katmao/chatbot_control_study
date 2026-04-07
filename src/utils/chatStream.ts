@@ -110,7 +110,7 @@ const SYSTEM_PROMPT = [
   '“What would raise it by one point?”',
   '',
   'Step 10 — Confirm Agreement',
-  '“Do you agree this plan fits you? Yes or no.”',
+  '“What, if anything, would you adjust so this plan fits you better?”',
   '',
   'Step 11 — Closure',
   '- Summarize plan in one sentence.',
