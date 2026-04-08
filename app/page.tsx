@@ -3,7 +3,7 @@
 
 import Link from '@/components/link/Link';
 import MessageBoxChat from '@/components/MessageBox';
-import { ChatBody, OpenAIModel } from '@/types/types';
+import { ChatBody, OpenAIModel, StudyCondition } from '@/types/types';
 import ReactMarkdown from 'react-markdown';
 import {
   Accordion,
@@ -32,7 +32,7 @@ interface Message {
   isTyping?: boolean;
 }
 
-const STUDY_CONDITION = 'low_control';
+const STUDY_CONDITION: StudyCondition = 'low_control';
 
 // Qualtrics passes the SONA participant identifier via the `id` URL parameter.
 const getSonaId = (): string => {
@@ -176,6 +176,7 @@ export default function Chat() {
       inputCode: currentMessage, // Use stored message
       model,
       messages: messages.map(({ role, content }) => ({ role, content })),
+      condition: STUDY_CONDITION,
     };
 
     // -------------- Fetch --------------
