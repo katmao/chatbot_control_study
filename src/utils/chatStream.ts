@@ -8,6 +8,11 @@ import { StudyCondition } from '@/types/types';
 type ChatMessage = { role: 'system' | 'user' | 'assistant'; content: string };
 type InputChatMessage = { role: 'user' | 'assistant'; content: string };
 
+const QUOTATION_MARK_REGEX = /["“”]/g;
+
+export const stripQuotationMarks = (text: string) =>
+  text.replace(QUOTATION_MARK_REGEX, '');
+
 const LOW_CONTROL_SYSTEM_PROMPT = [
   'ROLE',
   'You are a support chatbot simulating authentic, human-like conversations with users experiencing distress. The user leads; you only invite, reflect, and validate.',
@@ -518,9 +523,9 @@ const FOLLOW_UP_VARIATIONS = [
 ];
 
 const getSystemPrompt = (condition: StudyCondition): string => {
-  if (condition === 'medium_control') return MEDIUM_CONTROL_SYSTEM_PROMPT;
-  if (condition === 'high_control') return HIGH_CONTROL_SYSTEM_PROMPT;
-  return LOW_CONTROL_SYSTEM_PROMPT;
+  if (condition === 'medium_control') return stripQuotationMarks(MEDIUM_CONTROL_SYSTEM_PROMPT);
+  if (condition === 'high_control') return stripQuotationMarks(HIGH_CONTROL_SYSTEM_PROMPT);
+  return stripQuotationMarks(LOW_CONTROL_SYSTEM_PROMPT);
 };
 
 const isFinalClosingMessage = (text: string) =>
@@ -624,10 +629,11 @@ export const OpenAIStream = async (
             const json = JSON.parse(data);
             const text = json.choices?.[0]?.delta?.content;
             if (!text) return;
+            const sanitizedText = stripQuotationMarks(text);
             if (condition === 'high_control') {
-              accumulatedAssistantText += text;
+              accumulatedAssistantText += sanitizedText;
             }
-            const queue = encoder.encode(text);
+            const queue = encoder.encode(sanitizedText);
             controller.enqueue(queue);
           } catch (e) {
             controller.error(e);

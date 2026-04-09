@@ -1,5 +1,5 @@
 import { ChatBody, StudyCondition } from '@/types/types';
-import { OpenAIStream } from '@/utils/chatStream';
+import { OpenAIStream, stripQuotationMarks } from '@/utils/chatStream';
 
 type InputChatMessage = { role: 'user' | 'assistant'; content: string };
 
@@ -77,9 +77,10 @@ const getStudyCondition = (condition?: string): StudyCondition => {
 
 const textToStream = (text: string) => {
   const encoder = new TextEncoder();
+  const sanitizedText = stripQuotationMarks(text);
   return new ReadableStream({
     start(controller) {
-      controller.enqueue(encoder.encode(text));
+      controller.enqueue(encoder.encode(sanitizedText));
       controller.close();
     },
   });
