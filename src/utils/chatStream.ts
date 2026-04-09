@@ -6,6 +6,7 @@ import {
 
 type InputChatMessage = { role: 'user' | 'assistant'; content: string };
 type OpenAIMessage = { role: 'system' | 'user' | 'assistant'; content: string };
+const QUOTATION_MARK_REGEX = /["“”]/g;
 const FINAL_CLOSING_MESSAGE = 'Thank you and please proceed to the next page.';
 const FOLLOW_UP_VARIATIONS = [
   ' What part of this seems most workable?',
@@ -17,6 +18,9 @@ const FOLLOW_UP_VARIATIONS = [
   ' What seems clearest to act on?',
   ' Which piece fits your situation best?',
 ];
+
+export const stripQuotationMarks = (text: string) =>
+  text.replace(QUOTATION_MARK_REGEX, '');
 
 const isFinalClosingMessage = (text: string) =>
   text.trim().toLowerCase() === FINAL_CLOSING_MESSAGE.toLowerCase();
@@ -310,7 +314,10 @@ export const OpenAIStream = async (
   key: string | undefined,
   messages?: InputChatMessage[],
 ) => {
-  const systemMessage: OpenAIMessage = { role: 'system', content: SYSTEM_PROMPT };
+  const systemMessage: OpenAIMessage = {
+    role: 'system',
+    content: stripQuotationMarks(SYSTEM_PROMPT),
+  };
   const priorMessages: OpenAIMessage[] = messages && messages.length > 0 ? [...messages] : [];
   const fullMessages: OpenAIMessage[] = [
     systemMessage,
@@ -365,8 +372,9 @@ export const OpenAIStream = async (
             const json = JSON.parse(data);
             const text = json.choices?.[0]?.delta?.content;
             if (!text) return;
-            accumulatedAssistantText += text;
-            const queue = encoder.encode(text);
+            const sanitizedText = stripQuotationMarks(text);
+            accumulatedAssistantText += sanitizedText;
+            const queue = encoder.encode(sanitizedText);
             controller.enqueue(queue);
           } catch (e) {
             controller.error(e);

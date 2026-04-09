@@ -1,5 +1,5 @@
 import { ChatBody } from '@/types/types';
-import { OpenAIStream } from '@/utils/chatStream';
+import { OpenAIStream, stripQuotationMarks } from '@/utils/chatStream';
 
 const DEFAULT_MODEL = 'gpt-4o';
 const INITIAL_GREETING = "Hi. I'm a support chatbot. Please share as much detail as you can so I can provide clear and direct guidance. What is happening right now?";
@@ -15,9 +15,10 @@ const isInitialGreeting = (
 
 const textToStream = (text: string) => {
   const encoder = new TextEncoder();
+  const sanitizedText = stripQuotationMarks(text);
   return new ReadableStream({
     start(controller) {
-      controller.enqueue(encoder.encode(text));
+      controller.enqueue(encoder.encode(sanitizedText));
       controller.close();
     },
   });
