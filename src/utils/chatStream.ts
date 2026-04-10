@@ -25,6 +25,9 @@ export const stripQuotationMarks = (text: string) =>
 const isFinalClosingMessage = (text: string) =>
   text.trim().toLowerCase() === FINAL_CLOSING_MESSAGE.toLowerCase();
 
+const containsFinalClosingLine = (text: string) =>
+  text.toLowerCase().includes(FINAL_CLOSING_MESSAGE.toLowerCase());
+
 const containsQuestion = (text: string) => /[?]/.test(text);
 
 const getFollowUpVariation = () =>
@@ -51,6 +54,7 @@ const getComplianceSuffix = (assistantText: string) => {
   if (
     !trimmed ||
     isFinalClosingMessage(trimmed) ||
+    containsFinalClosingLine(trimmed) ||
     containsQuestion(trimmed) ||
     containsCallToAction(trimmed)
   ) {
