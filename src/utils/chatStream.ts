@@ -218,7 +218,7 @@ Wait.
 
 STEP 7 - Controlled Interpretation
 
-"Based on what you've described, it may be that your current pattern isn't creating the stability you're looking for." Explain and analyze the situation.
+"Based on what you've described, it may be that your current pattern isn't creating the stability you're looking for. Do you agree with this assessment?"
 
 Wait.
 
