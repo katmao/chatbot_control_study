@@ -1,5 +1,5 @@
 import { ChatBody, StudyCondition } from '@/types/types';
-import { OpenAIStream, stripQuotationMarks } from '@/utils/chatStream';
+import { normalizeAssistantMarkdown, OpenAIStream } from '@/utils/chatStream';
 
 type InputChatMessage = { role: 'user' | 'assistant'; content: string };
 
@@ -75,9 +75,9 @@ const getStudyCondition = (condition?: string): StudyCondition => {
   return DEFAULT_CONDITION;
 };
 
-const textToStream = (text: string) => {
+const textToStream = (text: string, condition: StudyCondition) => {
   const encoder = new TextEncoder();
-  const sanitizedText = stripQuotationMarks(text);
+  const sanitizedText = normalizeAssistantMarkdown(text, condition);
   return new ReadableStream({
     start(controller) {
       controller.enqueue(encoder.encode(sanitizedText));
@@ -102,24 +102,24 @@ const handleRequest = async (req: Request): Promise<Response> => {
     const settings = CONDITION_SETTINGS[studyCondition];
 
     if (settings.useFinalClosingGuard && isAwaitingFinalClosing(messages)) {
-      return new Response(textToStream(FINAL_CLOSING_LINE));
+      return new Response(textToStream(FINAL_CLOSING_LINE, studyCondition));
     }
 
     if (isInitialGreeting(inputCode, messages)) {
-      return new Response(textToStream(settings.initialGreeting));
+      return new Response(textToStream(settings.initialGreeting, studyCondition));
     }
 
     if (settings.useLowControlOverrides) {
       if (isAdviceRequest(inputCode)) {
-        return new Response(textToStream(ADVICE_RESPONSE));
+        return new Response(textToStream(ADVICE_RESPONSE, studyCondition));
       }
 
       if (isLikeWhat(inputCode)) {
-        return new Response(textToStream(LIKE_WHAT_RESPONSE));
+        return new Response(textToStream(LIKE_WHAT_RESPONSE, studyCondition));
       }
 
       if (isControlHandOff(inputCode)) {
-        return new Response(textToStream(CONTROL_HANDOFF_RESPONSE));
+        return new Response(textToStream(CONTROL_HANDOFF_RESPONSE, studyCondition));
       }
     }
 

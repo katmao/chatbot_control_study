@@ -9,9 +9,90 @@ type ChatMessage = { role: 'system' | 'user' | 'assistant'; content: string };
 type InputChatMessage = { role: 'user' | 'assistant'; content: string };
 
 const QUOTATION_MARK_REGEX = /["“”]/g;
+const MARKDOWN_BOLD_REGEX = /\*\*(.*?)\*\*/g;
+const LOW_CONTROL_APPROVED_BOLD_PHRASES = [
+  'you',
+  'your',
+  'your feelings',
+  'your preferences',
+  'your priorities',
+  'you decide',
+  'you can choose',
+  'what feels right to you',
+  'based on what you want',
+  'the final choice is yours',
+  'what do you think',
+  'What would you do',
+  'What would be your suggestion',
+  'how does that make you feel',
+  'do you think that would work',
+  'what matters most to you',
+  'which option fits you best',
+] as const;
 
 export const stripQuotationMarks = (text: string) =>
   text.replace(QUOTATION_MARK_REGEX, '');
+
+const stripMarkdownBold = (text: string) =>
+  text.replace(MARKDOWN_BOLD_REGEX, '$1');
+
+const escapeRegExp = (text: string) =>
+  text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const collectApprovedPhraseMatches = (text: string, phrases: readonly string[]) => {
+  const matches: Array<{ start: number; end: number }> = [];
+  const occupied = Array.from({ length: text.length }, () => false);
+
+  for (const phrase of [...phrases].sort((a, b) => b.length - a.length)) {
+    const pattern = new RegExp(
+      `(?<![A-Za-z])${escapeRegExp(phrase).replace(/\\ /g, '\\s+')}(?![A-Za-z])`,
+      'gi',
+    );
+
+    let match: RegExpExecArray | null;
+    while ((match = pattern.exec(text)) !== null) {
+      const start = match.index;
+      const end = start + match[0].length;
+      if (occupied.slice(start, end).some(Boolean)) continue;
+
+      matches.push({ start, end });
+      for (let i = start; i < end; i += 1) {
+        occupied[i] = true;
+      }
+    }
+  }
+
+  return matches.sort((a, b) => a.start - b.start);
+};
+
+const applyApprovedPhraseBolding = (text: string, phrases: readonly string[]) => {
+  const plainText = stripMarkdownBold(text);
+  const matches = collectApprovedPhraseMatches(plainText, phrases);
+  if (matches.length === 0) return plainText;
+
+  let cursor = 0;
+  let result = '';
+
+  for (const { start, end } of matches) {
+    result += plainText.slice(cursor, start);
+    result += `**${plainText.slice(start, end)}**`;
+    cursor = end;
+  }
+
+  result += plainText.slice(cursor);
+  return result;
+};
+
+export const normalizeAssistantMarkdown = (
+  text: string,
+  condition: StudyCondition = 'low_control',
+) => {
+  const sanitizedText = stripQuotationMarks(text);
+  if (condition === 'low_control') {
+    return applyApprovedPhraseBolding(sanitizedText, LOW_CONTROL_APPROVED_BOLD_PHRASES);
+  }
+  return sanitizedText;
+};
 
 const LOW_CONTROL_SYSTEM_PROMPT = [
   'ROLE',
@@ -34,7 +115,7 @@ const LOW_CONTROL_SYSTEM_PROMPT = [
   '- Maintain a calm, supportive tone.',
   '- Keep replies brief (1-2 sentences).',
   '- Use Markdown bold only for exact approved user-agency phrases, and bold only the phrase itself.',
-  '- Approved bold phrases are: "**you**", "**your**", "**your feelings**", "**your preferences**", "**your priorities**", "**you decide**", "**you can choose**", "**what feels right to you**", "**based on what you want**", "**the final choice is yours**", "**what do you think**", "**What would you do**", "**What would be your suggestion**", "**how does that make you feel**", "**do you think that would work**", "**what matters most to you**", and "**which option fits you best**".',
+  `- Approved bold phrases are: ${LOW_CONTROL_APPROVED_BOLD_PHRASES.map((phrase) => `"**${phrase}**"`).join(', ')}.`,
   '- If any approved phrase appears in the assistant message, you must bold that phrase every time it appears.',
   '- Never use an approved phrase in plain text without bolding it.',
   '- Do not bold words or phrases outside this approved list.',
@@ -618,6 +699,11 @@ export const OpenAIStream = async (
           const data = event.data;
 
           if (data === '[DONE]') {
+            if (condition === 'low_control') {
+              controller.enqueue(
+                encoder.encode(normalizeAssistantMarkdown(accumulatedAssistantText, condition)),
+              );
+            }
             if (condition === 'high_control') {
               const complianceSuffix = getComplianceSuffix(accumulatedAssistantText);
               if (complianceSuffix) {
@@ -632,11 +718,15 @@ export const OpenAIStream = async (
             const json = JSON.parse(data);
             const text = json.choices?.[0]?.delta?.content;
             if (!text) return;
-            const sanitizedText = stripQuotationMarks(text);
-            if (condition === 'high_control') {
-              accumulatedAssistantText += sanitizedText;
+            if (condition === 'low_control') {
+              accumulatedAssistantText += text;
+              return;
             }
-            const queue = encoder.encode(sanitizedText);
+            const normalizedText = normalizeAssistantMarkdown(text, condition);
+            if (condition === 'high_control') {
+              accumulatedAssistantText += normalizedText;
+            }
+            const queue = encoder.encode(normalizedText);
             controller.enqueue(queue);
           } catch (e) {
             controller.error(e);
