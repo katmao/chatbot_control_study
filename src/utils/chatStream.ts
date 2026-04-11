@@ -11,8 +11,8 @@ type InputChatMessage = { role: 'user' | 'assistant'; content: string };
 const QUOTATION_MARK_REGEX = /["“”]/g;
 const MARKDOWN_BOLD_REGEX = /\*\*(.*?)\*\*/g;
 const LOW_CONTROL_APPROVED_BOLD_PHRASES = [
-  'you',
-  'your',
+  'Help you',
+  'Explore your own thoughts',
   'your feelings',
   'your preferences',
   'your priorities',
@@ -28,6 +28,21 @@ const LOW_CONTROL_APPROVED_BOLD_PHRASES = [
   'do you think that would work',
   'what matters most to you',
   'which option fits you best',
+  'your decision',
+  'your choice',
+  'you get to decide',
+  'you’re the one who decides',
+  'it’s up to you',
+  'what feels right to you?',
+  'what makes sense to you?',
+  'what do you feel is the best?',
+  'what seems right for you?',
+  'your ideas',
+  'your thoughts',
+  'your perspective',
+  'What do you think…',
+  'What feels right to you',
+  'Options have you considered',
 ] as const;
 
 export const stripQuotationMarks = (text: string) =>
@@ -214,7 +229,7 @@ const LOW_CONTROL_SYSTEM_PROMPT = [
   'BOLDING EXAMPLES',
   '- “I want to focus on **your priorities** here.”',
   '- “This may become clearer **based on what you want**.”',
-  '- “Only **you** can decide what feels sustainable.”',
+  '- “Only **you get to decide** what feels sustainable.”',
   '- “**The final choice is yours**.”',
   '- “**You can choose** the option that fits best.”',
   '',
